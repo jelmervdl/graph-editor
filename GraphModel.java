@@ -7,8 +7,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Observable;
 import java.util.Scanner;
+import java.util.Observer;
 
-class GraphModel extends Observable
+class GraphModel extends Observable implements Observer
 {
 	private List<GraphVertex> vertices;
 
@@ -26,15 +27,16 @@ class GraphModel extends Observable
 	public void addVertex(GraphVertex vertex)
 	{
 		vertices.add(vertex);
-		vertex.setModel(this);
+		vertex.addObserver(this);
 
-		notifyObservers(vertex);
+		setChanged();
+		notifyObservers();
 	}
 
 	public void removeVertex(GraphVertex vertex)
 	{
 		vertices.remove(vertex);
-		vertex.setModel(null);
+		vertex.deleteObserver(this);
 
 		List<GraphEdge> edgesToRemove = new ArrayList<GraphEdge>();
 
@@ -45,7 +47,8 @@ class GraphModel extends Observable
 		for (GraphEdge edge : edgesToRemove)
 			removeEdge(edge);
 
-		notifyObservers(vertex);
+		setChanged();
+		notifyObservers();
 	}
 
 	public void removeVertices(List<GraphVertex> vertices)
@@ -98,9 +101,9 @@ class GraphModel extends Observable
 		return vertices.isEmpty();
 	}
 
-	/* Observable */
+	/* Observer */
 
-	public void notifyObservers(GraphVertex subject)
+	public void update(Observable subject, Object arg)
 	{
 		setChanged();
 		notifyObservers();
@@ -118,8 +121,8 @@ class GraphModel extends Observable
 		// Following lines: every vertice (x, y, width, height, label)
 		for (GraphVertex vertex : vertices)
 			pout.format("%d %d %d %d %s%n",
-				(int) vertex.getX(), (int) vertex.getY(),
-				(int) vertex.getWidth(), (int) vertex.getHeight(),
+				vertex.getLocation().x, vertex.getLocation().y,
+				vertex.getSize().width, vertex.getSize().height,
 				vertex.getName());
 
 		// Following lines: edges (from index, to index)

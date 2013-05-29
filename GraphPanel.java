@@ -1,6 +1,8 @@
 import java.awt.Color;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.Point;
 import java.awt.geom.Rectangle2D;
 import java.util.Observable;
@@ -23,6 +25,8 @@ class GraphPanel extends JPanel implements Observer
 		this.model = model;
 		this.model.addObserver(this);
 	}
+
+
 
 	public void setSelectionModel(GraphSelectionModel model)
 	{
@@ -48,6 +52,11 @@ class GraphPanel extends JPanel implements Observer
 	{
 		super.paintComponent(g);
 
+		// Hint to use antialiasing when drawing lines
+		((Graphics2D) g).setRenderingHint(
+			RenderingHints.KEY_ANTIALIASING, 
+			RenderingHints.VALUE_ANTIALIAS_ON);
+
 		for (GraphEdge edge : model.getEdges())
 			drawEdge(g, edge);
 
@@ -60,9 +69,7 @@ class GraphPanel extends JPanel implements Observer
 		Point from = edge.getFromPoint(),
 			  to = edge.getToPoint();
 
-		g.drawLine(
-			map(from.getX()), map(from.getY()), 
-			map(to.getX()), map(to.getY()));
+		g.drawLine(from.x, from.y, to.x, to.y);
 	}
 
 	private void drawVertex(Graphics g, GraphVertex vertex)
@@ -79,15 +86,15 @@ class GraphPanel extends JPanel implements Observer
 			: Color.WHITE);
 
 		g.fillRoundRect(
-			map(vertex.getX()), map(vertex.getY()), 
-			map(vertex.getWidth()), map(vertex.getHeight()),
+			vertex.getLocation().x, vertex.getLocation().y, 
+			vertex.getSize().width, vertex.getSize().height,
 			5, 5);
 
 		g.setColor(Color.BLACK);
 
 		g.drawRoundRect(
-			map(vertex.getX()), map(vertex.getY()), 
-			map(vertex.getWidth()), map(vertex.getHeight()),
+			vertex.getLocation().x, vertex.getLocation().y, 
+			vertex.getSize().width, vertex.getSize().height,
 			5, 5);
 	}
 
@@ -97,12 +104,7 @@ class GraphPanel extends JPanel implements Observer
 		Rectangle2D box = f.getStringBounds(vertex.getName(), g);
 
 		g.drawString(vertex.getName(),
-			map(vertex.getX()) + (map(vertex.getWidth()) - (int) box.getWidth()) / 2,
-			map(vertex.getY()) + (map(vertex.getHeight()) - (int) box.getHeight()) / 2 + f.getAscent());
-	}
-
-	private int map(double p)
-	{
-		return (int) p;
+			vertex.getLocation().x + (int) ((vertex.getSize().width - box.getWidth()) / 2),
+			vertex.getLocation().y + (int) ((vertex.getSize().height - box.getHeight()) / 2 + f.getAscent()));
 	}
 }

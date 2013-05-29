@@ -41,8 +41,8 @@ class GraphMouse extends MouseAdapter
 			selectionModel.setSelection(selectedVertex); // May be null
 
 		if (selectedVertex != null) {
-			mouseOffsetX = e.getX() - (int) selectionModel.getSelection().getX();
-			mouseOffsetY = e.getY() - (int) selectionModel.getSelection().getY();
+			mouseOffsetX = e.getX() - selectionModel.getSelection().getLocation().x;
+			mouseOffsetY = e.getY() - selectionModel.getSelection().getLocation().y;
 		}
 	}	
 
