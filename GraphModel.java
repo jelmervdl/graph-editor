@@ -48,6 +48,12 @@ class GraphModel extends Observable
 		notifyObservers(vertex);
 	}
 
+	public void removeVertices(List<GraphVertex> vertices)
+	{
+		for (GraphVertex vertex : vertices)
+			removeVertex(vertex);
+	}
+
 	public List<GraphVertex> getVertices()
 	{
 		return vertices;

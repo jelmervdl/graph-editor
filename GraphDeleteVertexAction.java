@@ -25,8 +25,7 @@ class GraphDeleteVertexAction extends AbstractAction implements Observer
 	@Override
 	public void actionPerformed(ActionEvent e)
 	{
-		for (GraphVertex vertex : controller.getSelectionModel().getSelected())
-			controller.getModel().removeVertex(vertex);
+		controller.getModel().removeVertices(controller.getSelectionModel().getSelected());
 	}
 
 	@Override

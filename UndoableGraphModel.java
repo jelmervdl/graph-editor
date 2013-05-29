@@ -174,6 +174,22 @@ class UndoableGraphModel extends GraphModel
 		undoManager = parent;
 	}
 
+	@Override
+	public void removeVertices(List<GraphVertex> vertices)
+	{
+		UndoableEdit parent = undoManager;
+
+		CompoundEdit edit = new CompoundEdit();
+
+		undoManager = edit;
+
+		super.removeVertices(vertices);
+
+		parent.addEdit(edit);
+		
+		undoManager = parent;
+	}
+
 	/* Edges */
 
 	@Override
