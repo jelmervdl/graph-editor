@@ -15,24 +15,13 @@ class GraphPanel extends JPanel implements Observer
 
 	protected GraphSelectionModel selectionModel;
 
-	public void setModel(GraphModel model)
+	public GraphPanel(GraphModel model, GraphSelectionModel selectionModel)
 	{
-		// Stop listening to the previous model
-		if (this.model != null)
-			this.model.deleteObserver(this);
-		
-		// Start Listening to the new model
 		this.model = model;
-		this.model.addObserver(this);
-	}
+		model.addObserver(this);
 
-	public void setSelectionModel(GraphSelectionModel model)
-	{
-		if (this.selectionModel != null)
-			this.selectionModel.deleteObserver(this);
-
-		this.selectionModel = model;
-		this.selectionModel.addObserver(this);
+		this.selectionModel = selectionModel;
+		selectionModel.addObserver(this);
 	}
 
 	/* Observer */
