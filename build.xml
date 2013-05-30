@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+    <target name="clean">
+        <delete dir="build"/>
+    </target>
+
+    <target name="compile">
+        <mkdir dir="build/classes"/>
+        <javac srcdir="src" destdir="build/classes" includeantruntime="false">
+            <compilerarg value="-Xlint:unchecked"/>
+            <compilerarg value="-Xlint:deprecation"/>
+        </javac>
+    </target>
+
+    <target name="jar" depends="compile">
+        <mkdir dir="build/jar"/>
+        <jar destfile="build/jar/GraphEditor.jar" basedir="build/classes">
+            <manifest>
+                <attribute name="Main-Class" value="Main"/>
+            </manifest>
+        </jar>
+    </target>
+
+    <target name="run" depends="compile">
+        <!-- <java jar="build/jar/Game.jar" fork="true"/> -->
+        <java classname="Main" classpath="build/classes" fork="true">
+            <!--<jvmarg value="-ea"/>
+            <arg value="maps/1.txt"/>-->
+        </java>
+    </target>
+
+    <!--
+    <target name="test-descriptors" depends="compile">
+        <java classname="TestDescriptors" classpath="build/classes">
+            <arg value="maps/1.txt"/>
+        </java>
+    </target>
+    -->
+
+</project>
