@@ -1,4 +1,6 @@
 import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.OverlayLayout;
 
 class GraphEditor
 {
@@ -6,53 +8,44 @@ class GraphEditor
 
 	private GraphFrame window;
 
-	private EditableGraphPanel panel;
-
 	private GraphSelectionModel selectionModel;
 
 	private GraphMouse selectionController;
 
-	public GraphEditor()
+	public GraphEditor(UndoableGraphModel model)
 	{
+		this.model = model;
+
 		selectionModel = new GraphSelectionModel();
 
 		selectionController = new GraphMouse();
+		selectionController.setModel(model);
 		selectionController.setSelectionModel(selectionModel);
 
-		panel = new EditableGraphPanel();
+		JPanel layers = new JPanel();
+		layers.setLayout(new OverlayLayout(layers));
 
-		panel.getTextField().addActionListener(new GraphNameChangeListener(this));
-
-		panel.setSelectionModel(selectionModel);
-
-		// For the mousePressed notifications
-		panel.addMouseListener(selectionController);
-
-		// .. and for the mouseDragged notifications
-		panel.addMouseMotionListener(selectionController);
+		// First, we have the edit layer which shows the change name textfield
+		GraphNameChangePanel editLayer = new GraphNameChangePanel(selectionModel);
+		editLayer.getTextField().addActionListener(new GraphNameChangeListener(this));
+		layers.add(editLayer);
+		
+		// Finally, we have the graph layer, which draws the actual graph
+		GraphPanel graphLayer = new GraphPanel();
+		graphLayer.setModel(model);
+		graphLayer.setSelectionModel(selectionModel);
+		
+		graphLayer.addMouseListener(selectionController);
+		graphLayer.addMouseMotionListener(selectionController);
+		layers.add(graphLayer);
 
 		window = new GraphFrame(this);
 		window.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		window.add(panel);
-
-		setModel(new UndoableGraphModel());
+		window.add(layers);
 
 		window.setSize(400, 400);
 
 		window.setVisible(true);
-	}
-
-	public void setModel(UndoableGraphModel model)
-	{
-		selectionModel.clearSelection();
-
-		this.model = model;
-
-		window.setModel(model);
-
-		panel.setModel(model);
-
-		selectionController.setModel(model);
 	}
 
 	public GraphModel getModel()

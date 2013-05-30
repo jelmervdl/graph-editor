@@ -26,8 +26,6 @@ class GraphPanel extends JPanel implements Observer
 		this.model.addObserver(this);
 	}
 
-
-
 	public void setSelectionModel(GraphSelectionModel model)
 	{
 		if (this.selectionModel != null)
@@ -46,6 +44,21 @@ class GraphPanel extends JPanel implements Observer
 	}
 
 	/* JPanel */
+
+	/*
+	@Override
+	public Dimension getPreferredSize()
+	{
+		Rectangle2D bounds = new Rectangle();
+
+		for (GraphVertex vertex : model.getVertices())
+			bounds = bounds.createUnion(vertex.getBounds());
+
+		return new Dimension(
+			(int) (bounds.getX() + bounds.getWidth()),
+			(int) (bounds.getY() + bounds.getHeight()));
+	}
+	*/
 
 	@Override
 	protected void paintComponent(Graphics g)

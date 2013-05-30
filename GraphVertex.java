@@ -62,14 +62,19 @@ class GraphVertex extends Observable
 		return size;
 	}
 
+	protected Shape getShape()
+	{
+		return new Rectangle(getLocation(), getSize());
+	}
+
 	public boolean contains(Point p)
 	{
 		return getShape().contains(p);
 	}
 
-	protected Shape getShape()
+	public Rectangle getBounds()
 	{
-		return new Rectangle(getLocation(), getSize());
+		return getShape().getBounds();
 	}
 
 	/*
