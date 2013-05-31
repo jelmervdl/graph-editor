@@ -50,6 +50,7 @@ class GraphNameChangePanel extends JPanel implements Observer
 		{
 			textField.setVisible(true);
 			textField.setText(selectionModel.getSelection().getName());
+			textField.requestFocus();
 			textField.selectAll();
 		}
 
