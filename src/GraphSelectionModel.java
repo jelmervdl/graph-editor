@@ -10,24 +10,22 @@ class GraphSelectionModel extends Observable
 
 	public void setSelection(GraphVertex vertex)
 	{
-		if (hasSelection() && !isSelected(vertex))
-			setChanged();
-		
 		selection.clear();
 
 		if (vertex != null)
 			selection.add(vertex);
 
+		setChanged();
 		notifyObservers();
 	}
 
 	public void addSelected(GraphVertex vertex)
 	{
-		if (hasSelection() && !isSelected(vertex))
-			setChanged();
+		if (isSelected(vertex))
+			return;
 		
 		selection.add(vertex);
-
+		setChanged();
 		notifyObservers();
 	}
 
@@ -53,11 +51,11 @@ class GraphSelectionModel extends Observable
 
 	public void clearSelection()
 	{
-		if (hasSelection())
-			setChanged();
-
+		if (selection.isEmpty())
+			return;
+		
 		selection.clear();
-
+		setChanged();
 		notifyObservers();
 	}
 
