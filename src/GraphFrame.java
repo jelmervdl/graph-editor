@@ -226,6 +226,7 @@ class GraphFrame extends JFrame
 		public void actionPerformed(ActionEvent e)
 		{
 			model.removeVertices(selectionModel.getSelected());
+			selectionModel.clearSelection();
 		}
 
 		@Override
