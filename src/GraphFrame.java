@@ -355,11 +355,11 @@ class GraphFrame extends JFrame
 		}
 	} 
 
-	public GraphFrame(UndoableGraphModel model)
+	public GraphFrame(GraphModel model)
 	{
 		super("Grafeneditor");
 
-		this.model = model;
+		this.model = new UndoableGraphModel(model);
 
 		this.selectionModel = new GraphSelectionModel();
 

@@ -4,11 +4,11 @@ import javax.swing.OverlayLayout;
 
 class GraphEditor
 {
-	private UndoableGraphModel model;
+	private GraphModel model;
 
 	private GraphFrame window;
 
-	public GraphEditor(UndoableGraphModel model)
+	public GraphEditor(GraphModel model)
 	{
 		this.model = model;
 

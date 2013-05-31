@@ -17,7 +17,7 @@ class Main extends WindowAdapter
 
 	public GraphEditor newEditor()
 	{
-		GraphEditor editor = new GraphEditor(new UndoableGraphModel());
+		GraphEditor editor = new GraphEditor(new GraphModel());
 		
 		// Listen for window closing
 		editor.getWindow().addWindowListener(this);

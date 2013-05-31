@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Observable;
-import java.util.Scanner;
 import javax.swing.undo.AbstractUndoableEdit;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
@@ -14,9 +13,15 @@ import javax.swing.undo.CompoundEdit;
 import javax.swing.undo.UndoableEdit;
 import javax.swing.undo.UndoManager;
 
+/**
+ * GraphModel decorator which adds undo-capability to
+ * the GraphModel using an UndoManager.
+ */
 class UndoableGraphModel extends GraphModel
 {
 	private UndoableEdit undoManager;
+
+	private GraphModel model;
 
 	private class AddVertexEdit extends AbstractUndoableEdit
 	{
@@ -30,13 +35,13 @@ class UndoableGraphModel extends GraphModel
 		public void undo() throws CannotUndoException
 		{
 			super.undo();
-			UndoableGraphModel.super.removeVertex(vertex);
+			model.removeVertex(vertex);
 		}
 		
 		public void redo() throws CannotRedoException
 		{
 			super.redo();
-			UndoableGraphModel.super.addVertex(vertex);
+			model.addVertex(vertex);
 		}
 		
 		public String getPresentationName()
@@ -57,13 +62,13 @@ class UndoableGraphModel extends GraphModel
 		public void undo() throws CannotUndoException
 		{
 			super.undo();
-			UndoableGraphModel.super.addVertex(vertex);
+			model.addVertex(vertex);
 		}
 		
 		public void redo() throws CannotRedoException
 		{
 			super.redo();
-			UndoableGraphModel.super.removeVertex(vertex);
+			model.removeVertex(vertex);
 		}
 		
 		public String getPresentationName()
@@ -84,13 +89,13 @@ class UndoableGraphModel extends GraphModel
 		public void undo() throws CannotUndoException
 		{
 			super.undo();
-			UndoableGraphModel.super.removeEdge(edge);
+			model.removeEdge(edge);
 		}
 		
 		public void redo() throws CannotRedoException
 		{
 			super.redo();
-			UndoableGraphModel.super.addEdge(edge);
+			model.addEdge(edge);
 		}
 		
 		public String getPresentationName()
@@ -111,13 +116,13 @@ class UndoableGraphModel extends GraphModel
 		public void undo() throws CannotUndoException
 		{
 			super.undo();
-			UndoableGraphModel.super.addEdge(edge);
+			model.addEdge(edge);
 		}
 		
 		public void redo() throws CannotRedoException
 		{
 			super.redo();
-			UndoableGraphModel.super.removeEdge(edge);
+			model.removeEdge(edge);
 		}
 		
 		public String getPresentationName()
@@ -126,8 +131,9 @@ class UndoableGraphModel extends GraphModel
 		}
 	}
 
-	public UndoableGraphModel()
+	public UndoableGraphModel(GraphModel delegate)
 	{
+		model = delegate;
 		undoManager = new UndoManager();
 	}
 
@@ -144,7 +150,7 @@ class UndoableGraphModel extends GraphModel
 	public void addVertex(GraphVertex vertex)
 	{
 		undoManager.addEdit(new AddVertexEdit(vertex));
-		super.addVertex(vertex);
+		model.addVertex(vertex);
 	}
 
 	@Override
@@ -160,7 +166,7 @@ class UndoableGraphModel extends GraphModel
 		// Remove the vertex
 		// This will also call this.removeEdge a few times and their
 		// edits will be added to the compound edit.
-		super.removeVertex(vertex);
+		model.removeVertex(vertex);
 
 		// Finally, add the comput edit.
 		edit.addEdit(new RemoveVertexEdit(vertex));
@@ -183,11 +189,17 @@ class UndoableGraphModel extends GraphModel
 
 		undoManager = edit;
 
-		super.removeVertices(vertices);
+		model.removeVertices(vertices);
 
 		parent.addEdit(edit);
 		
 		undoManager = parent;
+	}
+
+	@Override
+	public GraphVertex getVertexAtPoint(Point p)
+	{
+		return model.getVertexAtPoint(p);
 	}
 
 	/* Edges */
@@ -196,13 +208,46 @@ class UndoableGraphModel extends GraphModel
 	public void addEdge(GraphEdge edge)
 	{
 		undoManager.addEdit(new AddEdgeEdit(edge));
-		super.addEdge(edge);
+		model.addEdge(edge);
 	}
 
 	@Override
 	public void removeEdge(GraphEdge edge)
 	{
 		undoManager.addEdit(new RemoveEdgeEdit(edge));
-		super.removeEdge(edge);
+		model.removeEdge(edge);
+	}
+
+	@Override
+	public List<GraphEdge> getEdges()
+	{
+		return model.getEdges();
+	}
+
+	/* General */
+
+	public boolean isEmpty()
+	{
+		return model.isEmpty();
+	}
+
+	/* Observer */
+
+	public void update(Observable subject, Object arg)
+	{
+		model.update(subject, arg);
+	}
+
+	/* Save & Load */
+
+	public void save(OutputStream out)
+	{
+		model.save(out);
+	}
+
+	public void load(InputStream in)
+	{
+		((UndoManager) undoManager).discardAllEdits();
+		model.load(in);
 	}
 }
