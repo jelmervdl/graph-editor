@@ -333,20 +333,13 @@ class GraphFrame extends JFrame
 		}
 	}
 
-	class NameChangeListener extends AbstractAction implements Observer
+	class NameChangeListener extends AbstractAction implements GraphNameChangePanel.ChangeListener, Observer
 	{
 		public NameChangeListener()
 		{
 			super("Change name");
-			putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("control r"));
+			putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("control R"));
 			selectionModel.addObserver(this);
-		}
-
-		@Override
-		public void actionPerformed(ActionEvent e)
-		{
-			selectionModel.getSelection().setName(e.getActionCommand());
-			selectionModel.setEditable(false);
 		}
 
 		@Override
@@ -354,7 +347,27 @@ class GraphFrame extends JFrame
 		{
 			setEnabled(selectionModel.hasSelection());
 		}
-	} 
+
+		@Override
+		public void actionPerformed(ActionEvent e)
+		{
+			selectionModel.setEditable(true);
+		}
+
+		@Override
+		public void changeAccepted(GraphVertex vertex, String name)
+		{
+			vertex.setName(name);
+			selectionModel.setEditable(false);
+		}
+
+		@Override
+		public void changeCancelled(GraphVertex vertex)
+		{
+			selectionModel.setEditable(false);
+		}
+
+	}
 
 	public GraphFrame(GraphModel model)
 	{
@@ -373,7 +386,7 @@ class GraphFrame extends JFrame
 
 		// First, we have the edit layer which shows the change name textfield
 		GraphNameChangePanel editLayer = new GraphNameChangePanel(selectionModel);
-		editLayer.getTextField().addActionListener(new NameChangeListener());
+		editLayer.addChangeListener(new NameChangeListener());
 		layers.add(editLayer);
 		
 		// Finally, we have the graph layer, which draws the actual graph
@@ -436,6 +449,10 @@ class GraphFrame extends JFrame
 		
 		editMenu.add(new NewEdgeAction());
 		editMenu.add(new DeleteEdgeAction());
+
+		editMenu.addSeparator();
+
+		editMenu.add(new NameChangeListener());
 
 		return editMenu;
 	}
