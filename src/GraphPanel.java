@@ -22,6 +22,8 @@ class GraphPanel extends JPanel implements Observer
 
 		this.selectionModel = selectionModel;
 		selectionModel.addObserver(this);
+
+		setOpaque(false);
 	}
 
 	/* Observer */

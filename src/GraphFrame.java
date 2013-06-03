@@ -384,6 +384,11 @@ class GraphFrame extends JFrame
 		JPanel layers = new JPanel();
 		layers.setLayout(new OverlayLayout(layers));
 
+		// Selection panel, draws an outline surrounding the selection
+		GraphSelectionPanel selectionPanel = new GraphSelectionPanel(selectionModel);
+		selectionModel.addObserver(selectionPanel);
+		layers.add(selectionPanel);
+
 		// First, we have the edit layer which shows the change name textfield
 		GraphNameChangePanel editLayer = new GraphNameChangePanel(selectionModel);
 		editLayer.addChangeListener(new NameChangeListener());
@@ -391,10 +396,11 @@ class GraphFrame extends JFrame
 		
 		// Finally, we have the graph layer, which draws the actual graph
 		GraphPanel graphLayer = new GraphPanel(model, selectionModel);
-		graphLayer.addMouseListener(selectionController);
-		graphLayer.addMouseMotionListener(selectionController);
 		layers.add(graphLayer);
 
+		layers.addMouseListener(selectionController);
+		layers.addMouseMotionListener(selectionController);
+		
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);		
 		
 		add(layers);
