@@ -15,11 +15,15 @@ class GraphModel extends Observable implements Observer
 
 	private List<GraphEdge> edges;
 
+	private boolean dirty;
+
 	public GraphModel()
 	{
 		vertices = new ArrayList<GraphVertex>();
 
 		edges = new ArrayList<GraphEdge>();
+
+		dirty = false;
 	}
 
 	/* Vertex */
@@ -28,6 +32,8 @@ class GraphModel extends Observable implements Observer
 	{
 		vertices.add(vertex);
 		vertex.addObserver(this);
+
+		dirty = true;
 
 		setChanged();
 		notifyObservers();
@@ -46,6 +52,8 @@ class GraphModel extends Observable implements Observer
 		
 		for (GraphEdge edge : edgesToRemove)
 			removeEdge(edge);
+
+		dirty = true;
 
 		setChanged();
 		notifyObservers();
@@ -76,6 +84,7 @@ class GraphModel extends Observable implements Observer
 	public void addEdge(GraphEdge edge)
 	{
 		edges.add(edge);
+		dirty = true;
 
 		setChanged();
 		notifyObservers();
@@ -84,6 +93,7 @@ class GraphModel extends Observable implements Observer
 	public void removeEdge(GraphEdge edge)
 	{
 		edges.remove(edge);
+		dirty = true;
 
 		setChanged();
 		notifyObservers();
@@ -101,10 +111,17 @@ class GraphModel extends Observable implements Observer
 		return vertices.isEmpty();
 	}
 
+	public boolean isDirty()
+	{
+		return dirty;
+	}
+
 	/* Observer */
 
 	public void update(Observable subject, Object arg)
 	{
+		dirty = true;
+		
 		setChanged();
 		notifyObservers();
 	}
@@ -132,6 +149,11 @@ class GraphModel extends Observable implements Observer
 				vertices.indexOf(edge.getTo()));
 
 		pout.flush();
+
+		dirty = false;
+
+		setChanged();
+		notifyObservers();
 	}
 
 	public void load(InputStream in)
@@ -162,5 +184,10 @@ class GraphModel extends Observable implements Observer
 				vertices.get(sc.nextInt()));
 			addEdge(edge);
 		}
+
+		dirty = false;
+
+		setChanged();
+		notifyObservers();
 	}
 }
