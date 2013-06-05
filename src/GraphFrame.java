@@ -86,6 +86,20 @@ class GraphFrame extends JFrame
 		}
 	}
 
+	private class CloneWindowAction extends AbstractAction
+	{
+		public CloneWindowAction()
+		{
+			super("Clone Window");
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent e)
+		{
+			Main.getSharedInstance().newEditor(model);
+		}
+	}
+
 	private class LoadGraphAction extends AbstractAction
 	{
 		public LoadGraphAction()
@@ -418,6 +432,9 @@ class GraphFrame extends JFrame
 		// Edit menu
 		menuBar.add(buildEditMenu());
 
+		// Window menu
+		menuBar.add(buildWindowMenu());
+
 		return menuBar;
 	}
 
@@ -461,5 +478,14 @@ class GraphFrame extends JFrame
 		editMenu.add(new NameChangeListener());
 
 		return editMenu;
+	}
+
+	private JMenu buildWindowMenu()
+	{
+		JMenu windowMenu = new JMenu("Window");
+
+		windowMenu.add(new CloneWindowAction());
+
+		return windowMenu;
 	}
 }
