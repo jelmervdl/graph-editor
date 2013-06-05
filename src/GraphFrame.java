@@ -1,4 +1,6 @@
 import java.awt.event.ActionEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.InputStream;
 import java.io.FileInputStream;
@@ -26,6 +28,8 @@ class GraphFrame extends JFrame
 	private UndoableGraphModel model;
 
 	private GraphSelectionModel selectionModel;
+
+	private FileModel fileModel;
 
 	private class UndoAction extends AbstractAction implements Observer
 	{
@@ -122,13 +126,18 @@ class GraphFrame extends JFrame
 			try {
 				File file = chooser.getSelectedFile();
 				InputStream in = new FileInputStream(file);
-
+				
 				// If the current model is empty, load it in this one
-				if (model.isEmpty())
+				if (model.isEmpty()) {
 					model.load(in);
+					fileModel.setFile(file);
+				}
 				// Otherwise, open a new editor and load it in that one.
-				else
-					Main.getSharedInstance().newEditor().getModel().load(in);
+				else {
+					GraphEditor editor = Main.getSharedInstance().newEditor();
+					editor.getModel().load(in);
+					editor.getWindow().fileModel.setFile(file);
+				}
 
 				in.close();
 			}
@@ -146,12 +155,12 @@ class GraphFrame extends JFrame
 	    }
 	}
 
-	private class SaveGraphAction extends AbstractAction
+	private class SaveAsGraphAction extends AbstractAction
 	{
-		public SaveGraphAction()
+		public SaveAsGraphAction()
 		{
 			super("Save As...");
-			putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("meta S"));
+			putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("meta shift S"));
 		}
 
 		@Override
@@ -176,6 +185,9 @@ class GraphFrame extends JFrame
 				// Write the model to the file
 				model.save(out);
 
+				// Set the new file as the current file
+				fileModel.setFile(file);
+
 				out.close();
 			}
 			catch (Exception error) {
@@ -192,6 +204,48 @@ class GraphFrame extends JFrame
 		}
 	}
 
+	private class SaveGraphAction extends AbstractAction implements Observer
+	{
+		public SaveGraphAction()
+		{
+			super("Save");
+			putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("meta S"));
+
+			fileModel.addObserver(this);
+			setEnabled(false);
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent e)
+		{
+			try {
+				OutputStream out = new FileOutputStream(fileModel.getFile());
+
+				// Write the model to the file
+				model.save(out);
+
+				out.close();
+			}
+			catch (Exception error) {
+				// Print complete error to terminal
+				System.err.println(error);
+
+				// And also show a nice popup to the user.
+				JOptionPane.showMessageDialog(
+					GraphFrame.this,
+					error.getMessage(),
+					"Error while saving graph",
+					JOptionPane.ERROR_MESSAGE);
+			}
+		}
+
+		@Override
+		public void update(Observable source, Object arg)
+		{
+			setEnabled(fileModel.hasFile());
+		}
+	}
+
 	private class CloseGraphAction extends AbstractAction
 	{
 		public CloseGraphAction()
@@ -203,7 +257,7 @@ class GraphFrame extends JFrame
 		@Override
 		public void actionPerformed(ActionEvent e)
 		{
-			dispose();
+			dispatchEvent(new WindowEvent(GraphFrame.this, WindowEvent.WINDOW_CLOSING));
 		}
 	}
 
@@ -380,7 +434,83 @@ class GraphFrame extends JFrame
 		{
 			selectionModel.setEditable(false);
 		}
+	}
 
+	class FileChangeListener implements Observer
+	{
+		@Override
+		public void update(Observable source, Object arg)
+		{
+			setTitle(fileModel.getFile().getName());
+			getRootPane().putClientProperty("Window.documentFile", fileModel.getFile());
+		}
+	}
+
+	class ModelChangeListener implements Observer
+	{
+		@Override
+		public void update(Observable source, Object arg)
+		{
+			getRootPane().putClientProperty("Window.documentModified", model.isDirty());
+		}
+	}
+
+	class ConfirmCloseListener extends WindowAdapter
+	{
+		final static int OPTION_DELETE = 0;
+		final static int OPTION_CANCEL = 1;
+		final static int OPTION_SAVE = 2;
+
+		@Override
+		public void windowClosing(WindowEvent e)
+		{
+			if (!model.isDirty()) {
+				dispose();
+			}
+			else {
+				switch (confirmDelete())
+				{
+
+					case OPTION_CANCEL:
+						return;
+
+					case OPTION_SAVE:
+						AbstractAction action = fileModel.hasFile()
+							? new SaveGraphAction()
+							: new SaveAsGraphAction();
+
+						action.actionPerformed(null);
+
+					case OPTION_DELETE:
+						dispose();
+						break;
+				}
+			}
+		}
+
+		private int confirmDelete()
+		{
+			Object[] options = {
+				"Don't Save",
+				"Cancel",
+				"Save"
+			};
+
+			String title = "Confirm close";
+
+			String message = "Do you want to save the changes you made";
+
+			if (fileModel.hasFile())
+				message += " to " + fileModel.getFile().getName();
+
+			message += "?";
+
+			return JOptionPane.showOptionDialog(
+				GraphFrame.this, message, title,
+				JOptionPane.YES_NO_CANCEL_OPTION,
+				JOptionPane.QUESTION_MESSAGE,
+				null, options, options[2]);
+		}
 	}
 
 	public GraphFrame(GraphModel model)
@@ -388,8 +518,12 @@ class GraphFrame extends JFrame
 		super("Grafeneditor");
 
 		this.model = new UndoableGraphModel(model);
+		this.model.addObserver(new ModelChangeListener());
 
 		this.selectionModel = new GraphSelectionModel();
+
+		this.fileModel = new FileModel();
+		fileModel.addObserver(new FileChangeListener());
 
 		GraphMouse selectionController = new GraphMouse();
 		selectionController.setModel(model);
@@ -415,7 +549,8 @@ class GraphFrame extends JFrame
 		layers.addMouseListener(selectionController);
 		layers.addMouseMotionListener(selectionController);
 		
-		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);		
+		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		addWindowListener(new ConfirmCloseListener());
 		
 		add(layers);
 
@@ -448,6 +583,7 @@ class GraphFrame extends JFrame
 		fileMenu.addSeparator();
 		
 		fileMenu.add(new SaveGraphAction());
+		fileMenu.add(new SaveAsGraphAction());
 		
 		fileMenu.addSeparator();
 		
