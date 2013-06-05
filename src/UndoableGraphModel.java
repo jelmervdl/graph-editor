@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Observable;
+import java.util.Observer;
 import javax.swing.undo.AbstractUndoableEdit;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
@@ -134,6 +135,7 @@ class UndoableGraphModel extends GraphModel
 	public UndoableGraphModel(GraphModel delegate)
 	{
 		model = delegate;
+
 		undoManager = new UndoManager();
 	}
 
@@ -197,6 +199,12 @@ class UndoableGraphModel extends GraphModel
 	}
 
 	@Override
+	public List<GraphVertex> getVertices()
+	{
+		return model.getVertices();
+	}
+
+	@Override
 	public GraphVertex getVertexAtPoint(Point p)
 	{
 		return model.getVertexAtPoint(p);
@@ -226,6 +234,7 @@ class UndoableGraphModel extends GraphModel
 
 	/* General */
 
+	@Override
 	public boolean isEmpty()
 	{
 		return model.isEmpty();
@@ -233,18 +242,27 @@ class UndoableGraphModel extends GraphModel
 
 	/* Observer */
 
+	@Override
 	public void update(Observable subject, Object arg)
 	{
 		model.update(subject, arg);
 	}
 
+	@Override
+	public void addObserver(Observer observer)
+	{
+		model.addObserver(observer);
+	}
+
 	/* Save & Load */
 
+	@Override
 	public void save(OutputStream out)
 	{
 		model.save(out);
 	}
 
+	@Override
 	public void load(InputStream in)
 	{
 		((UndoManager) undoManager).discardAllEdits();
