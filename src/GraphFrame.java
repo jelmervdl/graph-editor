@@ -17,6 +17,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
 import javax.swing.OverlayLayout;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -549,10 +550,11 @@ class GraphFrame extends JFrame
 		layers.addMouseListener(selectionController);
 		layers.addMouseMotionListener(selectionController);
 		
+		JScrollPane scrollPane = new JScrollPane(layers);
+		add(scrollPane);
+
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		addWindowListener(new ConfirmCloseListener());
-		
-		add(layers);
 
 		setJMenuBar(buildMenuBar());
 	}

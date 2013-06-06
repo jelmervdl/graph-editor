@@ -3,7 +3,9 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.Dimension;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
 import java.util.Observable;
 import java.util.Observer;
@@ -31,12 +33,15 @@ class GraphPanel extends JPanel implements Observer
 	@Override
 	public void update(Observable model, Object arg) 
 	{
+		// Preferred size might have changed
+		revalidate();
+
+		// .. and we want to repaint
 		repaint();
 	}
 
 	/* JPanel */
 
-	/*
 	@Override
 	public Dimension getPreferredSize()
 	{
@@ -49,7 +54,6 @@ class GraphPanel extends JPanel implements Observer
 			(int) (bounds.getX() + bounds.getWidth()),
 			(int) (bounds.getY() + bounds.getHeight()));
 	}
-	*/
 
 	@Override
 	protected void paintComponent(Graphics g)
