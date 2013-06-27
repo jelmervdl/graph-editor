@@ -1,5 +1,12 @@
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.HeadlessException;
+import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
@@ -10,20 +17,28 @@ import java.io.OutputStream;
 import java.util.Iterator;
 import java.util.Observer;
 import java.util.Observable;
-import java.awt.event.ActionEvent;
+import java.util.Map;
+import java.util.HashMap;
 import javax.swing.AbstractAction;
+import javax.swing.ButtonGroup;
+import javax.swing.DefaultButtonModel;
+import javax.swing.Icon;
+import javax.swing.JColorChooser;
 import javax.swing.JFrame;
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JSlider;
 import javax.swing.KeyStroke;
 import javax.swing.OverlayLayout;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
+import javax.swing.event.MenuListener;
+import javax.swing.event.MenuEvent;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.undo.UndoableEdit;
 
@@ -518,6 +533,172 @@ class GraphFrame extends JFrame
 		}
 	}
 
+	class ColorVertexMenu extends JMenu
+	{
+		private Map<String, Color> colors;
+
+		private ButtonGroup group;
+
+		private class MenuItemModel extends DefaultButtonModel implements Observer
+		{
+			private Color color;
+
+			public MenuItemModel(Color color)
+			{
+				this.color = color;
+			}
+
+			@Override
+			public void setPressed(boolean b)
+			{
+				if (b && selectionModel.hasSelection())
+					selectionModel.getSelection().setColor(color);
+
+				super.setPressed(b);
+			}
+
+			@Override
+			public boolean isEnabled()
+			{
+				return selectionModel.hasSelection();
+			}
+
+			@Override
+			public boolean isSelected()
+			{
+				return selectionModel.hasSelection()
+					&& selectionModel.getSelection().getColor().equals(color);
+			}
+
+			@Override
+			public void update(Observable source, Object arg)
+			{
+				fireStateChanged();
+			}
+		}
+
+		private class CustomColorMenuItemModel extends DefaultButtonModel implements Observer
+		{
+			@Override
+			public void setPressed(boolean b)
+			{
+				if (!b || !selectionModel.hasSelection())
+					return;
+
+				try {
+					Color color = JColorChooser.showDialog(
+						GraphFrame.this, "Color of vertex",
+						selectionModel.getSelection().getColor());
+
+					selectionModel.getSelection().setColor(color);
+				}
+				catch (HeadlessException e) {
+					e.printStackTrace(System.err);
+				}
+
+				super.setPressed(b);
+			}
+
+			@Override
+			public boolean isEnabled()
+			{
+				return selectionModel.hasSelection();
+			}
+
+			@Override
+			public boolean isSelected()
+			{
+				return selectionModel.hasSelection()
+					&& !colors.containsValue(selectionModel.getSelection().getColor());
+			}
+
+			@Override
+			public void update(Observable source, Object arg)
+			{
+				fireStateChanged();
+			}
+		}
+
+		private class ColorSwatch implements Icon
+		{
+			private Color color;
+
+			public ColorSwatch(Color color)
+			{
+				this.color = color;
+			}
+
+			@Override
+			public int getIconHeight()
+			{
+				return 16;
+			}
+
+			@Override
+			public int getIconWidth()
+			{
+				return 16;
+			}
+
+			@Override
+			public void paintIcon(Component c, Graphics g, int x, int y)
+			{
+				((Graphics2D) g).setRenderingHint(
+					RenderingHints.KEY_ANTIALIASING, 
+					RenderingHints.VALUE_ANTIALIAS_ON);
+
+				g.setColor(color);
+				g.fillOval(x + 1, y + 1, getIconWidth() - 2, getIconHeight() - 2);
+			}
+		}
+
+		public ColorVertexMenu()
+		{
+			super("Color");
+
+			colors = new HashMap<String,Color>();
+			colors.put("Black", Color.BLACK);
+			colors.put("White", Color.WHITE);
+			colors.put("Red", Color.RED);
+			colors.put("Blue", Color.BLUE);
+
+			group = new ButtonGroup();
+
+			for (Map.Entry<String,Color> entry : colors.entrySet())
+				addOption(createOption(entry.getValue(), entry.getKey()));
+
+			addOption(createCustomOption());
+		}
+
+		protected JRadioButtonMenuItem createOption(Color color, String name)
+		{
+			JRadioButtonMenuItem menuItem = new JRadioButtonMenuItem(name, new ColorSwatch(color));
+			
+			MenuItemModel model = new MenuItemModel(color);
+			selectionModel.addObserver(model);
+			menuItem.setModel(model);
+
+			return menuItem;
+		}
+
+		protected JRadioButtonMenuItem createCustomOption()
+		{
+			JRadioButtonMenuItem menuItem = new JRadioButtonMenuItem("Custom...");
+
+			CustomColorMenuItemModel model = new CustomColorMenuItemModel();
+			selectionModel.addObserver(model);
+			menuItem.setModel(model);
+
+			return menuItem;
+		}
+
+		protected void addOption(JRadioButtonMenuItem option)
+		{
+			group.add(option);
+			add(option);
+		}
+	}
+
 	public GraphFrame(GraphModel model)
 	{
 		super("Grafeneditor");
@@ -627,6 +808,8 @@ class GraphFrame extends JFrame
 		editMenu.add(new DeleteEdgeAction());
 
 		editMenu.addSeparator();
+
+		editMenu.add(new ColorVertexMenu());
 
 		editMenu.add(new NameChangeListener());
 

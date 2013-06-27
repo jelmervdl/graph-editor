@@ -1,3 +1,4 @@
+import java.awt.Color;
 import java.awt.Point;
 import java.awt.Dimension;
 import java.awt.Rectangle;
@@ -12,11 +13,15 @@ class GraphVertex extends Observable
 
 	private Dimension size;
 
+	private Color color;
+
 	public GraphVertex()
 	{
 		location = new Point(10, 10);
 
 		size = new Dimension(160, 40);
+
+		color = Color.WHITE;
 
 		setName("[Unnamed]");
 	}
@@ -30,6 +35,19 @@ class GraphVertex extends Observable
 	{
 		this.name = name;
 		
+		setChanged();
+		notifyObservers();
+	}
+
+	public Color getColor()
+	{
+		return color;
+	}
+
+	public void setColor(Color color)
+	{
+		this.color = color;
+
 		setChanged();
 		notifyObservers();
 	}
