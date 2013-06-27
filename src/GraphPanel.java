@@ -6,6 +6,7 @@ import java.awt.RenderingHints;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.util.Observable;
 import java.util.Observer;
@@ -17,15 +18,35 @@ class GraphPanel extends JPanel implements Observer
 
 	protected GraphSelectionModel selectionModel;
 
+	private double scale;
+
 	public GraphPanel(GraphModel model, GraphSelectionModel selectionModel)
 	{
+		scale = 1.0;
+
 		this.model = model;
 		model.addObserver(this);
 
 		this.selectionModel = selectionModel;
 		selectionModel.addObserver(this);
 
-		setOpaque(false);
+		setOpaque(false);	
+	}
+
+	public void setScale(double scale)
+	{
+		this.scale = scale;
+		repaint();
+	}
+
+	public double getScale()
+	{
+		return scale;
+	}
+
+	private int scale(double value)
+	{
+		return (int) Math.ceil(value * scale);
 	}
 
 	/* Observer */
@@ -51,8 +72,8 @@ class GraphPanel extends JPanel implements Observer
 			bounds = bounds.createUnion(vertex.getBounds());
 
 		return new Dimension(
-			(int) (bounds.getX() + bounds.getWidth()),
-			(int) (bounds.getY() + bounds.getHeight()));
+			scale(bounds.getX() + bounds.getWidth()),
+			scale(bounds.getY() + bounds.getHeight()));
 	}
 
 	@Override
@@ -60,10 +81,17 @@ class GraphPanel extends JPanel implements Observer
 	{
 		super.paintComponent(g);
 
+		Graphics2D g2 = (Graphics2D) g;
+
 		// Hint to use antialiasing when drawing lines
-		((Graphics2D) g).setRenderingHint(
+		g2.setRenderingHint(
 			RenderingHints.KEY_ANTIALIASING, 
 			RenderingHints.VALUE_ANTIALIAS_ON);
+
+		// Set scale transformation
+		AffineTransform t = new AffineTransform(g2.getTransform());
+		t.scale(scale, scale);
+		g2.setTransform(t);
 
 		for (GraphEdge edge : model.getEdges())
 			drawEdge(g, edge);
@@ -90,8 +118,8 @@ class GraphPanel extends JPanel implements Observer
 	private void drawVertexShape(Graphics g, GraphVertex vertex)
 	{
 		g.setColor(selectionModel.isSelected(vertex)
-			? Color.GRAY
-			: Color.WHITE);
+			? vertex.getColor().darker()
+			: vertex.getColor());
 
 		g.fillRoundRect(
 			vertex.getLocation().x, vertex.getLocation().y, 

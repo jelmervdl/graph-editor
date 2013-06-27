@@ -1,5 +1,6 @@
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.Point;
 
 class GraphMouse extends MouseAdapter
 {
@@ -33,25 +34,37 @@ class GraphMouse extends MouseAdapter
 		if (model == null)
 			return;
 
-		GraphVertex selectedVertex = model.getVertexAtPoint(e.getPoint());
+		GraphPanel source = (GraphPanel) e.getSource();
 		
+		Point scaledPoint = new Point(
+			(int) (e.getX() / source.getScale()),
+			(int) (e.getY() / source.getScale()));
+
+		GraphVertex selectedVertex = model.getVertexAtPoint(scaledPoint);
+
 		if (e.isMetaDown() && selectedVertex != null)
 			selectionModel.addSelected(selectedVertex);
 		else
 			selectionModel.setSelection(selectedVertex); // May be null
 
 		if (selectedVertex != null) {
-			mouseOffsetX = e.getX() - selectionModel.getSelection().getLocation().x;
-			mouseOffsetY = e.getY() - selectionModel.getSelection().getLocation().y;
+			mouseOffsetX = (int) scaledPoint.getX() - selectionModel.getSelection().getLocation().x;
+			mouseOffsetY = (int) scaledPoint.getY() - selectionModel.getSelection().getLocation().y;
 		}
 	}	
 
 	@Override
 	public void mouseDragged(MouseEvent e)
 	{
+		GraphPanel source = (GraphPanel) e.getSource();
+		
+		Point scaledPoint = new Point(
+			(int) (e.getX() / source.getScale()),
+			(int) (e.getY() / source.getScale()));
+
 		if (selectionModel.hasSelection())
 			selectionModel.getSelection().setLocation(
-				e.getX() - mouseOffsetX,
-				e.getY() - mouseOffsetY);
+				(int) scaledPoint.getX() - mouseOffsetX,
+				(int) scaledPoint.getY() - mouseOffsetY);
 	}
 }

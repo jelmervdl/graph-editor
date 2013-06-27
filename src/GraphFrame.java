@@ -1,3 +1,4 @@
+import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -18,8 +19,11 @@ import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSlider;
 import javax.swing.KeyStroke;
 import javax.swing.OverlayLayout;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ChangeEvent;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.undo.UndoableEdit;
 
@@ -544,14 +548,25 @@ class GraphFrame extends JFrame
 		layers.add(editLayer);
 		
 		// Finally, we have the graph layer, which draws the actual graph
-		GraphPanel graphLayer = new GraphPanel(model, selectionModel);
+		final GraphPanel graphLayer = new GraphPanel(model, selectionModel);
 		layers.add(graphLayer);
 
-		layers.addMouseListener(selectionController);
-		layers.addMouseMotionListener(selectionController);
+		graphLayer.addMouseListener(selectionController);
+		graphLayer.addMouseMotionListener(selectionController);
+		
+		setLayout(new BorderLayout());
+		final JSlider scaleSlider = new JSlider(0, 100);
+		scaleSlider.setValue((int) (graphLayer.getScale() * 20.0));
+		scaleSlider.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				graphLayer.setScale(scaleSlider.getValue() / 20.0);
+			}
+		});
+		add(scaleSlider, BorderLayout.SOUTH);
 		
 		JScrollPane scrollPane = new JScrollPane(layers);
-		add(scrollPane);
+		add(scrollPane, BorderLayout.CENTER);
 
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		addWindowListener(new ConfirmCloseListener());
